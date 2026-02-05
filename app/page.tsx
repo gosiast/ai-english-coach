@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, Badge, RotateCcw, Sparkles, Volume2 } from 'lucide-react';
+import { ArrowRight, Badge, RotateCcw, Sparkles, Volume2, Languages, Star } from 'lucide-react';
 import Footer from './components/footer';
 
 function speak(text: string) {
@@ -57,21 +57,31 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-sky-50 via-background to-background">
-      <main className="grow flex flex-col items-center justify-center px-4 py-12">
-        {/* Header Branding */}
-        <div className="text-center mb-8 space-y-2">
-          <Badge className="px-3 py-1 border-primary/20 text-primary">
-            Powered by AI
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-500 via-purple-400 to-pink-400">
+      <main className="grow flex flex-col items-center justify-center px-4 py-12 relative">
+        
+        {/* Animated Background Decorative Elements */}
+        <div className="absolute top-20 left-10 w-32 h-32 bg-white/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-48 h-48 bg-amber-200/30 rounded-full blur-3xl animate-bounce duration-[10s]" />
+
+        {/* Header Section */}
+        <div className="text-center mb-8 space-y-4">
+          <Badge className="bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-md px-4 py-1 shadow-lg">
+            <Star className="w-3 h-3 mr-2 fill-amber-300 stroke-amber-300" />
+            Your Private Tutor
           </Badge>
-          <h1 className="text-4xl font-bold tracking-tight">AI English Coach</h1>
-          <p className="text-muted-foreground">Master natural English, one sentence at a time.</p>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white drop-shadow-md">
+            AI English Coach
+          </h1>
+          <p className="text-white/90 text-lg font-medium max-w-sm mx-auto drop-shadow-sm">
+            Unlock your natural voice. ✨
+          </p>
         </div>
 
-        <Card className="w-full max-w-lg border-none shadow-2xl ring-1 ring-black/5">
+        <Card className="w-full max-w-lg border-none shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] bg-white/90 backdrop-blur-xl ring-1 ring-white/50">
           <CardHeader>
-            <CardDescription className="text-base font-medium">
-              What do you want to say?
+            <CardDescription className="text-indigo-900/70 font-bold text-sm uppercase tracking-widest">
+              Type your thought:
             </CardDescription>
           </CardHeader>
 
@@ -81,79 +91,59 @@ export default function HomePage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder='e.g., "i back at 20"'
-                className="min-h-[120px] text-lg p-4 transition-all focus-visible:ring-primary/20 bg-muted/20"
+                className="min-h-[120px] text-lg p-5 rounded-2xl border-none bg-indigo-50/50 focus-visible:ring-indigo-400 text-indigo-950 placeholder:text-indigo-300 shadow-inner"
               />
-              <div className="absolute bottom-3 right-3 text-xs text-muted-foreground">
-                {input.length} characters
-              </div>
             </div>
 
             <Button
               onClick={handleSubmit}
-              className="w-full h-12 text-base font-semibold"
+              className="w-full h-14 text-lg font-black rounded-2xl bg-linear-to-r from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 border-none shadow-[0_10px_20px_-5px_rgba(244,114,182,0.4)] transition-all hover:scale-[1.02] active:scale-[0.98] text-white"
               disabled={loading || !input.trim()}
             >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Thinking...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  Help me say this <ArrowRight className="h-4 w-4" />
-                </span>
-              )}
+              {loading ? "Polishing..." : "Transform my English 🚀"}
             </Button>
 
             {result && (
-              <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="rounded-2xl bg-primary/5 p-6 border border-primary/10 space-y-4">
+              <div className="mt-4 animate-in zoom-in-95 duration-300">
+                <div className="rounded-3xl bg-linear-to-br from-amber-50 to-orange-50 p-6 border-2 border-orange-100 shadow-sm space-y-5">
+                  
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-primary font-bold text-sm">
-                      <Sparkles className="h-4 w-4" />
-                      BETTER VERSION
+                    <span className="flex items-center gap-2 text-orange-600 font-black text-xs uppercase tracking-tighter">
+                      <Sparkles className="h-4 w-4 fill-orange-400" />
+                      The Native Way
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => speak(result.pronunciation ?? result.corrected)}
-                      className="rounded-full gap-2 text-primary hover:bg-primary/10"
+                      onClick={() => speak(result.corrected)}
+                      className="rounded-full bg-orange-200/50 text-orange-700 hover:bg-orange-200"
                     >
-                      <Volume2 className="h-4 w-4" /> Listen
+                      <Volume2 className="h-4 w-4" />
                     </Button>
                   </div>
 
-                  <p className="text-2xl font-serif leading-tight">
+                  <p className="text-2xl font-serif text-indigo-950 leading-tight font-medium decoration-orange-200 underline decoration-4 underline-offset-4">
                     {result.corrected}
                   </p>
 
-                  <div className="pt-2 space-y-2">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Why?</h4>
-                    <p className="text-sm leading-relaxed text-foreground/80">
+                  <div className="p-4 rounded-2xl bg-white/80 space-y-1 shadow-sm">
+                    <h4 className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Quick Tip</h4>
+                    <p className="text-sm text-indigo-900/80 leading-relaxed font-medium">
                       {result.explanation}
                     </p>
                   </div>
 
-                  {result.timeHint && (
-                    <div className="flex items-center gap-2 text-sm text-orange-600 font-medium">
-                      <span>🕗</span> {result.timeHint}
-                    </div>
-                  )}
-
-                  <div className="pt-4 flex items-center justify-between">
-                    <p className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">
-                      ✅ Good try!
-                    </p>
+                  <div className="flex items-center justify-between pt-2">
+                    <Badge className="bg-emerald-100 text-emerald-700 border-none font-bold">
+                      Perfect! ✅
+                    </Badge>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setInput('');
-                        setResult(null);
-                      }}
-                      className="text-muted-foreground hover:text-foreground h-auto p-0 underline-offset-4 hover:underline"
+                      onClick={() => { setInput(''); setResult(null); }}
+                      className="text-indigo-400 hover:text-indigo-600 font-bold"
                     >
-                      <RotateCcw className="h-3 w-3 mr-1" /> Try another
+                      <RotateCcw className="h-4 w-4 mr-1" /> Again
                     </Button>
                   </div>
                 </div>

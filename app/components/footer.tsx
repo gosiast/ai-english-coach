@@ -1,4 +1,4 @@
-import { Mail, Linkedin, Github } from 'lucide-react';
+import { Mail, Linkedin, Github, Users } from 'lucide-react';
 
 type FooterProps = {
   happyUsers: number;
@@ -6,49 +6,57 @@ type FooterProps = {
 
 const Footer = ({ happyUsers }: FooterProps) => {
   return (
-    <footer className="mt-16 border-t border-border/40">
-      <div className="max-w-md mx-auto px-4 py-8 space-y-4 text-center">
-
-        {/* Metric */}
-        <p className="text-xs text-muted-foreground">
-          ✨ {happyUsers > 0
-            ? `${happyUsers} people have tried improving their English here`
-            : 'Helping people practice simple, real-life English'}
-        </p>
+    <footer className="w-full mt-auto border-t border-white/20 bg-white/10 backdrop-blur-md">
+      <div className="max-w-md mx-auto px-4 py-8 space-y-6 text-center">
+        
+        {/* Metric Badge-style */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 border border-white/30 shadow-sm">
+          <Users size={14} className="text-amber-200" />
+          <p className="text-xs font-bold text-white tracking-wide">
+            {happyUsers > 0
+              ? `${happyUsers.toLocaleString()} learners improved today`
+              : 'Helping you master real-life English'}
+          </p>
+        </div>
 
         {/* Contact icons */}
-        <div className="flex items-center justify-center gap-4 text-muted-foreground">
+        <div className="flex items-center justify-center gap-6">
           <a
-            href="mailto:gosia@example.com"
+            href="mailto:stano.malgorzata@gmail.com"
             aria-label="Email"
-            className="hover:text-foreground transition-colors"
+            className="text-white/80 hover:text-white hover:scale-110 transition-all duration-200"
           >
-            <Mail size={18} />
+            <Mail size={20} />
           </a>
 
           <a
-            href="https://www.linkedin.com/in/your-link/"
+            href="https://www.linkedin.com/in/malgorzata-stano/"
             target="_blank"
             aria-label="LinkedIn"
-            className="hover:text-foreground transition-colors"
+            className="text-white/80 hover:text-white hover:scale-110 transition-all duration-200"
           >
-            <Linkedin size={18} />
+            <Linkedin size={20} />
           </a>
 
           <a
             href="https://github.com/gosiast/ai-english-coach"
             target="_blank"
             aria-label="GitHub"
-            className="hover:text-foreground transition-colors"
+            className="text-white/80 hover:text-white hover:scale-110 transition-all duration-200"
           >
-            <Github size={18} />
+            <Github size={20} />
           </a>
         </div>
 
         {/* Attribution */}
-        <p className="text-xs text-muted-foreground">
-          Open sourced on GitHub · Built by Małgorzata Stano
-        </p>
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase font-black tracking-[0.15em] text-white/60">
+            Open Source Project
+          </p>
+          <p className="text-xs font-medium text-white/90">
+            Built with ✨ by <span className="underline decoration-amber-400 underline-offset-4">Małgorzata Stano</span>
+          </p>
+        </div>
       </div>
     </footer>
   );

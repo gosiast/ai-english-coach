@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,7 +31,26 @@ export default function HomePage() {
     pronunciation: string;
     timeHint?: string;
   } | null>(null);
+  const [happyUsers, setHappyUsers] = useState<number>(0);
 
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('aec_visited');
+  
+    if (!hasVisited) {
+      fetch('/api/views', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => setHappyUsers(data.happyUsers));
+  
+      localStorage.setItem('aec_visited', 'true');
+    } else {
+      fetch('/api/views', { method: 'GET' })
+        .then(res => res.json())
+        .then(data => setHappyUsers(data.happyUsers));
+    }
+  }, []);
+  
+
+  
   const handleSubmit = async () => {
     if (!input.trim()) return;
 
@@ -45,10 +64,12 @@ export default function HomePage() {
 
       const data = await response.json();
       setResult(data);
+   
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <>
@@ -144,9 +165,11 @@ export default function HomePage() {
             )}
           </CardContent>
         </Card>
-      </main>
 
-      <Footer />
+
+
+      </main>
+<Footer happyUsers={happyUsers} />
     </>
   );
 }

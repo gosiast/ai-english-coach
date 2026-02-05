@@ -15,3 +15,19 @@ export function stripHowToSay(text: string) {
     };
   }
   
+export function detectNonEnglish(text: string) {
+    // very simple heuristic for V1
+    const hasNonLatin = /[ąćęłńóśżźàèìòùáéíóúñü]/i.test(text);
+    const looksPolish = /\b(jak|się|mówi|po|angielsku)\b/i.test(text);
+    const looksSpanish = /\b(cómo|decir|en inglés)\b/i.test(text);
+  
+    if (hasNonLatin || looksPolish || looksSpanish) {
+      return {
+        explanation:
+          '🌍 It looks like you’re asking in another language. Please write the sentence you want to say in English.',
+      };
+    }
+  
+    return null;
+  }
+  

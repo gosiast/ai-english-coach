@@ -1,9 +1,24 @@
 import { NextResponse } from 'next/server';
-    import { fixMissingToBe, fixWrongTimePreposition, fixPastWhenFutureIsIntended, fixMissingAtForTime, fixMissingVerb, fixThisThese, fixVerbAsJob, fixWorkLikeJob } from '@/lib/rules';
+
+import {
+  fixMissingVerb,
+  fixMissingToBe,
+  fixPastWhenFutureIsIntended,
+  fixWrongTimePreposition,
+  fixMissingAtForTime,
+  fixThisThese,
+  fixVerbAsJob,
+  fixWorkLikeJob,
+} from '@/lib/rules';
+
 import { getExplanation } from '@/lib/explanations';
-import { applyPronunciationRules, extractTimeHint } from '@/lib/pronunciation';
+import {
+  applyPronunciationRules,
+  extractTimeHint,
+} from '@/lib/pronunciation';
+
+import { detectNonEnglish, stripHowToSay } from '@/lib/intent';
 import { LTMatch } from '@/lib/types';
-import { stripHowToSay } from '@/lib/intent';
 
 export async function POST(request: Request) {
   const { text } = await request.json();
@@ -15,54 +30,72 @@ export async function POST(request: Request) {
     );
   }
 
-/* ------------------------------------------
- * 1️⃣ Custom beginner rules (teacher logic)
- * ------------------------------------------ */
-
-let workingText = text;
-let extraExplanation: string | null = null;
-
-// 1️⃣ Handle “how to say” FIRST (DO NOT RETURN)
-const howToSay = stripHowToSay(workingText);
-if (howToSay) {
-  workingText = howToSay.cleanedText;
-  extraExplanation = howToSay.explanation;
-}
-
-// 2️⃣ Grammar rules
-const rules = [
-    fixMissingVerb,        // "i back at 20"
-    fixVerbAsJob,          // "i come as driver"
-    fixMissingToBe,        // "i happy"
-    fixPastWhenFutureIsIntended,
-    fixWrongTimePreposition,
-    fixMissingAtForTime,
-    fixThisThese,
-    fixWorkLikeJob,
-  ];  
-
-for (const rule of rules) {
-  const result = rule(workingText);
-
-  if (result) {
+  /* ------------------------------------------
+   * 0️⃣ Language detection FIRST
+   * ------------------------------------------ */
+  const languageHint = detectNonEnglish(text);
+  if (languageHint) {
     return NextResponse.json({
-      corrected: result.corrected,
-      explanation: extraExplanation
-        ? `${extraExplanation} ${result.explanation}`
-        : result.explanation,
-      pronunciation: applyPronunciationRules(result.corrected),
-      timeHint: extractTimeHint(result.corrected),
+      corrected: '',
+      explanation: languageHint.explanation,
+      pronunciation: '',
+      timeHint: null,
     });
   }
-}
-
 
   /* ------------------------------------------
-   * 2️⃣ LanguageTool grammar check
+   * 1️⃣ Intent cleanup (“how to say”)
+   * ------------------------------------------ */
+  let workingText = text;
+  let extraExplanation: string | null = null;
+
+  const howToSay = stripHowToSay(workingText);
+  if (howToSay) {
+    workingText = howToSay.cleanedText;
+    extraExplanation = howToSay.explanation;
+  }
+
+  /* ------------------------------------------
+   * 2️⃣ Teacher grammar rules (priority order)
+   * ------------------------------------------ */
+  const rules = [
+    fixMissingVerb,              // "i back at 20"
+    fixVerbAsJob,                // "i come as driver"
+    fixWorkLikeJob,              // "i work like guide"
+    fixMissingToBe,              // "i happy"
+    fixPastWhenFutureIsIntended, // "i came back at 8"
+    fixWrongTimePreposition,     // "back in 8"
+    fixMissingAtForTime,         // "back 8"
+    fixThisThese,                // "this is apples"
+  ];
+
+  for (const rule of rules) {
+    const result = rule(workingText);
+
+    if (result) {
+      const timeHint = extractTimeHint(result.corrected);
+
+      return NextResponse.json({
+        corrected: result.corrected,
+        explanation: extraExplanation
+          ? `${extraExplanation} ${result.explanation}`
+          : result.explanation,
+        pronunciation: applyPronunciationRules(
+          result.corrected
+        ),
+        timeHint: timeHint
+          ? `${timeHint.original} means ${timeHint.spoken}.`
+          : null,
+      });
+    }
+  }
+
+  /* ------------------------------------------
+   * 3️⃣ LanguageTool fallback
    * ------------------------------------------ */
   const params = new URLSearchParams({
     text: workingText,
-        language: 'en-US',
+    language: 'en-US',
   });
 
   const res = await fetch(
@@ -88,50 +121,50 @@ for (const rule of rules) {
   const matches: LTMatch[] = data.matches ?? [];
 
   /* ------------------------------------------
-   * 3️⃣ No grammar issues
+   * 4️⃣ No issues
    * ------------------------------------------ */
   if (!matches.length) {
-    const pronunciation = applyPronunciationRules(text);
-
     return NextResponse.json({
-      corrected: text,
+      corrected: workingText,
       explanation: 'This sentence is correct.',
-      pronunciation,
+      pronunciation: applyPronunciationRules(
+        workingText
+      ),
+      timeHint: null,
     });
   }
 
   /* ------------------------------------------
-   * 4️⃣ Apply ALL grammar fixes
+   * 5️⃣ Apply LanguageTool fixes
    * ------------------------------------------ */
-  let corrected = text;
+  let corrected = workingText;
 
-  // IMPORTANT: reverse order
   for (const match of [...matches].reverse()) {
-    const replacement = match.replacements[0]?.value;
+    const replacement =
+      match.replacements[0]?.value;
     if (!replacement) continue;
 
     corrected =
       corrected.slice(0, match.offset) +
       replacement +
-      corrected.slice(match.offset + match.length);
+      corrected.slice(
+        match.offset + match.length
+      );
   }
 
-  /* ------------------------------------------
-   * 5️⃣ Pick ONE beginner explanation
-   * ------------------------------------------ */
   const explanation = getExplanation(matches[0]);
+  const timeHint = extractTimeHint(corrected);
 
   /* ------------------------------------------
-   * 6️⃣ Pronunciation (spoken English)
-   * ------------------------------------------ */
-  const pronunciation = applyPronunciationRules(corrected);
-
-  /* ------------------------------------------
-   * 7️⃣ Final response
+   * 6️⃣ Final response
    * ------------------------------------------ */
   return NextResponse.json({
     corrected,
     explanation,
-    pronunciation,
+    pronunciation:
+      applyPronunciationRules(corrected),
+    timeHint: timeHint
+      ? `${timeHint.original} means ${timeHint.spoken}.`
+      : null,
   });
 }
